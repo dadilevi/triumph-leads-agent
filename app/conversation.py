@@ -233,10 +233,14 @@ class ConversationEngine:
             if s.slots:
                 self.db.set_offered_slots(lead_id, json.dumps(slots_to_list(s.slots), ensure_ascii=False))
 
-            if s.intent == "handoff":
+            if s.intent == "handoff" and s.pause:  # the whole conversation goes to a human
                 self.db.set_status(lead_id, "handoff")
                 self.db.set_paused(lead_id, True, s.handoff_reason or "הסוכן העביר לנציג")
                 self._alert(lead, "handoff", s.handoff_reason or "הסוכן העביר לנציג")
+            elif s.intent == "handoff":  # one open question for the team — the agent keeps talking
+                self._alert(lead, "question", s.handoff_reason or "שאלה פתוחה לצוות")
+                if lead["status"] not in ("meeting",):
+                    self.db.set_status(lead_id, "sent" if auto else "replied")
             elif s.intent == "not_interested":
                 self.db.set_status(lead_id, "not_relevant")
             elif not (s.intent == "book" and auto) and lead["status"] not in ("meeting",):

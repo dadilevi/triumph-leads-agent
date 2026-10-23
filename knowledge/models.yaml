@@ -1,0 +1,39 @@
+# Real model data, taken from the Israeli importer's official site (triumphmotorcycles.co.il, Albar Moto)
+# on 2026-10-23. NOT yet confirmed by David — prices/stock at his dealership may differ. Verify before go-live.
+#
+# The agent answers ONLY from this file. Missing/null field = unknown → the agent says it will check with the team.
+_source: "triumphmotorcycles.co.il, 2026-10-23"
+_verified_by_dealer: false
+
+models:
+  - id: scrambler-400-x
+    name: Scrambler 400 X
+    aliases: [scrambler 400, סקרמבלר 400, סקרמבלר 400 x, scrambler 400x, סקרמבלר]
+    category: סקרמבלר / רטרו 400 סמ"ק
+    license: null            # not stated on the official page
+    price: "₪40,990 (מחיר לצרכן כולל מע\"מ, הוצאות רישוי ואגרת רישוי לשנה הראשונה; בכפוף למלאי)"
+    colors: [שחור, לבן-שחור, אפור, כחול, כחול-שחור, ירוק בהיר, כתום-שחור, אפור-לבן, טורקיז]
+    availability: null
+    promotions: null
+    includes: "מחיר סופי לצרכן: כולל מע\"מ, הוצאות רישוי ואגרת רישוי לשנה הראשונה"
+    warranty: "שנתיים ללא הגבלת קילומטרים"
+    service: "טיפול כל 16,000 ק\"מ או 12 חודשים, המוקדם מביניהם"
+    highlights:
+      - "מנוע חד-צילינדר 398 סמ\"ק, 40 כ\"ס ב-8,000 סל\"ד, מומנט 3.8 קג\"מ"
+      - "משקל 179 ק\"ג רטוב, גובה מושב 83 ס\"מ, מיכל 13 ליטר"
+      - "מזלג הפוך 43 מ\"מ, גלגל קדמי 19 אינץ' ואחורי 17 — מתאים גם לדרכי עפר קלות"
+      - "בלם קדמי 320 מ\"מ עם קליפר רדיאלי, ABS, מצמד החלקה, גיר 6 הילוכים"
+
+  - id: speed-400
+    name: Speed 400
+    aliases: [speed 400, ספיד 400, ספיד, speed]
+    category: רודסטר / מודרן קלאסיק 400 סמ"ק
+    license: null
+    price: "₪36,990"
+    colors: []
+    availability: null
+    promotions: null
+    includes: null
+    warranty: null
+    service: null
+    highlights: []           # specs page not retrieved yet

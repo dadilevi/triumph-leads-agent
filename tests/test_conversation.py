@@ -104,20 +104,35 @@ class TestAutoMode(Base):
         self.assertTrue(any(a["kind"] == "meeting" for a in self.db.alerts()))
         self.assertEqual(len(self.ch.sent), 4)  # opening, price answer, slot offer, confirmation
 
-    def test_unknown_price_hands_off_and_agent_goes_quiet(self):
+    def test_unknown_price_is_soft_handoff_agent_keeps_talking(self):
         self.db.conn.execute("UPDATE leads SET model_id='street-triple-765', model_raw='Street Triple 765'")
         lead = self.say("כמה עולה?")
+        self.assertNotEqual(lead["status"], "handoff")
+        self.assertFalse(lead["agent_paused"])
+        self.assertNotIn("₪", self.last_out())
+        self.assertIn("בודק", self.last_out())
+        self.assertTrue(any(a["kind"] == "question" for a in self.db.alerts()))
+        n = len(self.ch.sent)
+        self.say("בוקר טוב")
+        self.assertEqual(len(self.ch.sent), n + 1)  # still talking
+
+    def test_asking_for_human_pauses_and_agent_goes_quiet(self):
+        lead = self.say("אפשר שנציג יתקשר אליי?")
         self.assertEqual(lead["status"], "handoff")
         self.assertTrue(lead["agent_paused"])
-        self.assertNotIn("₪", self.last_out())
         n = len(self.ch.sent)
         self.say("הלו?")
-        self.assertEqual(len(self.ch.sent), n)  # no more agent replies
+        self.assertEqual(len(self.ch.sent), n)
         self.assertGreaterEqual(sum(a["kind"] == "handoff" for a in self.db.alerts()), 2)
-
         self.engine.resume(self.lead_id)
         self.say("אשמח לנסיעת מבחן")
         self.assertEqual(len(self.ch.sent), n + 1)
+
+    def test_greeting_and_small_talk_get_replies(self):
+        for text in ["בוקר טוב", "ספר לי עליו", "תודה!", "אממ"]:
+            lead = self.say(text)
+            self.assertFalse(lead["agent_paused"], text)
+        self.assertEqual(len(self.ch.sent), 4)
 
     def test_unknown_number_creates_lead(self):
         lid = self.engine.handle_inbound("972549999999", "היי, מעוניין בטייגר 900", profile_name="רון לוי")
@@ -174,9 +189,9 @@ class TestSupervisedMode(Base):
 class TestAIBooking(Base):
     def test_ai_book_with_invalid_slot_hands_off(self):
         self.engine.agent = Agent(KN, llm=lambda *a: {"message": "סגור!", "intent": "book", "chosen_slot": 9})
-        lead = self.say("ביום ראשון")
-        self.assertEqual(lead["status"], "handoff")
+        self.say("ביום ראשון")
         self.assertEqual(self.db.meetings(self.lead_id), [])
+        self.assertTrue(any(a["kind"] == "question" for a in self.db.alerts()))
 
     def test_ai_book_valid(self):
         self.engine.agent = Agent(KN, llm=lambda *a: {"message": "סגור!", "intent": "book", "chosen_slot": 1})
@@ -310,6 +325,21 @@ class TestWebhook(unittest.TestCase):
         self.assertFalse(verify_signature("", b"x", sign("", b"x")))  # no secret configured → reject
 
 
+class TestRealKnowledge(unittest.TestCase):
+    kn = Knowledge.load(ROOT / "knowledge/models.yaml", ROOT / "knowledge/business.dummy.yaml")
+
+    def test_answers_from_official_site_data(self):
+        agent = Agent(self.kn)
+        m = self.kn.find_model("סקרמבלר 400")
+        self.assertEqual(m.id, "scrambler-400-x")
+        s = agent.reply("דנה", m, [("in", "כמה עולה ומה האחריות?")], [])
+        self.assertIn("₪40,990", s.message)
+        self.assertIn("שנתיים", s.message)
+        s = agent.reply("דנה", self.kn.find_model("ספיד 400"), [("in", "איזה צבעים יש?")], [])
+        self.assertEqual(s.intent, "handoff")  # colors unknown for Speed 400 — never invented
+        self.assertFalse(s.pause)
+
+
 class TestSimulatorPages(unittest.TestCase):
     def test_simulator_flow(self):
         with tempfile.TemporaryDirectory() as d:
@@ -324,7 +354,7 @@ class TestSimulatorPages(unittest.TestCase):
             c.post(f"/simulator/{lid}/customer", data={"text": "כמה עולה?"})
             page = c.get(f"/simulator?lead={lid}").get_data(as_text=True)
             self.assertIn("Speed 400", page)
-            self.assertIn("₪00,000 (דמה)", page)
+            self.assertIn("₪36,990", page)
             self.assertIn("שלח כלקוח", page)
             self.assertEqual(c.get("/alerts").status_code, 200)
             app.extensions["tla"]["db"].conn.close()

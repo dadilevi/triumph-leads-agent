@@ -25,14 +25,16 @@ SYSTEM_PROMPT = """אתה {agent_name} של {business} — סוכנות אופנ
 ההודעה שתכתוב עשויה להישלח ללקוח ישירות, בלי עריכה.
 
 כללים מחייבים:
-1. ענה אך ורק מתוך "מידע מאושר" שלמטה. אסור להמציא מחירים, מבצעים, זמני אספקה, מפרטים, תנאי מימון או כל עובדה אחרת.
-2. אם התשובה לא נמצאת במידע המאושר, או שכתוב "לא ידוע — להעביר לנציג": intent="handoff", וכתוב ללקוח בחום שמישהו מהצוות יחזור אליו עם תשובה מדויקת. אל תנחש.
-3. אם הלקוח מבקש נציג/אדם, כועס, מתלונן, או מעלה נושא רגיש — intent="handoff".
-4. המטרה: לקבוע נסיעת מבחן או ביקור בסוכנות. כשהלקוח מגלה עניין — intent="meeting" והצע את המועדים מרשימת "מועדים להצעה" בלבד, במדויק.
-5. אם הלקוח בחר בבירור אחד המועדים שהוצעו — intent="book" ו-chosen_slot = המספר שלו ברשימה. אם הוא מבקש מועד שלא ברשימה — הצע שוב את הרשימה, או handoff אם אף מועד לא מתאים לו.
-6. אם הלקוח לא מעוניין — intent="not_interested", תודה קצרה ומנומסת, בלי לחץ.
-7. לעולם אל תטען שאתה בן אדם. אם שואלים — אמור בפשטות שאתה העוזר הדיגיטלי של הסוכנות ושאפשר לדבר עם נציג בכל רגע.
-8. טון: עברית, אישי, קצר (1–3 משפטים), כמו איש מכירות טוב. לא רובוטי, בלי רשימות, אימוג'י אחד לכל היותר. פנה בשם הפרטי.
+1. עובדות (מחירים, מבצעים, זמני אספקה, מפרטים, מימון, אחריות) — אך ורק מתוך "מידע מאושר" שלמטה. אסור להמציא או לנחש.
+2. שאלה שאין לה תשובה במידע המאושר (או שכתוב "לא ידוע — להעביר לנציג"): intent="handoff", pause_agent=false.
+   כתוב ללקוח שתבדוק עם הצוות ותחזור אליו, והמשך את השיחה כרגיל (למשל הצע נסיעת מבחן). השיחה לא נעצרת.
+3. רק אם הלקוח מבקש במפורש נציג/אדם, כועס, מתלונן או מעלה נושא רגיש: intent="handoff", pause_agent=true.
+4. שיחה רגילה (ברכות, "ספר לי עליו", התלבטויות, שאלות כלליות על חוויית רכיבה) — ענה בחום ובטבעיות ככל שאפשר בלי להמציא עובדות, ותוביל בעדינות לנסיעת מבחן. intent="answer".
+5. המטרה: לקבוע נסיעת מבחן או ביקור בסוכנות. כשהלקוח מגלה עניין — intent="meeting" והצע את המועדים מרשימת "מועדים להצעה" בלבד, במדויק.
+6. אם הלקוח בחר בבירור אחד המועדים שהוצעו — intent="book" ו-chosen_slot = המספר שלו ברשימה. מועד שלא ברשימה — הצע שוב את הרשימה.
+7. אם הלקוח לא מעוניין — intent="not_interested", תודה קצרה ומנומסת, בלי לחץ.
+8. לעולם אל תטען שאתה בן אדם. אם שואלים — אמור בפשטות שאתה העוזר הדיגיטלי של הסוכנות ושאפשר לדבר עם נציג בכל רגע.
+9. טון: עברית, אישי, קצר (1–3 משפטים), כמו איש מכירות טוב. לא רובוטי, בלי רשימות, אימוג'י אחד לכל היותר. פנה בשם הפרטי.
 """
 
 REPLY_TOOL = {
@@ -44,7 +46,8 @@ REPLY_TOOL = {
             "message": {"type": "string", "description": "ההודעה ללקוח, בעברית"},
             "intent": {"type": "string", "enum": list(INTENTS)},
             "chosen_slot": {"type": "integer", "description": "רק כש-intent=book: מספר המועד שהלקוח בחר (1, 2, 3...)"},
-            "handoff_reason": {"type": "string", "description": "רק כש-intent=handoff: למה צריך נציג (לאיש המכירות)"},
+            "handoff_reason": {"type": "string", "description": "רק כש-intent=handoff: מה צריך מהצוות (לאיש המכירות)"},
+            "pause_agent": {"type": "boolean", "description": "true רק אם הלקוח ביקש נציג / כועס / נושא רגיש"},
         },
         "required": ["message", "intent"],
     },
@@ -59,6 +62,7 @@ class Suggestion:
     used_ai: bool = False
     slots: list[Slot] = field(default_factory=list)  # slots offered in this message
     chosen: Slot | None = None  # intent == "book"
+    pause: bool = False  # hard handoff: a human must take the whole conversation
 
 
 LLMCall = Callable[[str, list[dict], dict], dict]  # (system, messages, tool) -> tool input dict
@@ -160,6 +164,7 @@ class Agent:
             intent=intent,
             handoff_reason=out.get("handoff_reason", "") or "",
             used_ai=True,
+            pause=bool(out.get("pause_agent")) and out.get("intent") == "handoff",
         )
         if intent == "meeting":
             s.slots = slots
@@ -184,15 +189,22 @@ class Agent:
         "availability": ["מלאי", "זמין", "אספקה", "מתי מגיע", "כמה זמן"],
         "promotions": ["מבצע", "הנחה", "מבצעים"],
         "license": ["רישיון", "רשיון", "דרגה", "a2", "a1"],
+        "warranty": ["אחריות"],
+        "service": ["טיפול", "טיפולים"],
     }
 
+    GREETING = ["היי", "הי ", "שלום", "בוקר טוב", "ערב טוב", "צהריים טובים", "אהלן", "מה נשמע", "מה קורה", "hello", "hi"]
+    THANKS = ["תודה", "מעולה", "סבבה", "אחלה", "תותח"]
+    TELL_ME = ["ספר לי", "תספר", "פרטים", "מה יש לו", "מה מיוחד", "מעוניין", "מעוניינת", "מתעניין", "מתעניינת", "מידע"]
+
     def _rule_reply(self, first_name, model: Model | None, incoming: str, slots: list[Slot]) -> Suggestion:
-        t = incoming.lower()
+        t = incoming.lower().strip()
         name = first_name or ""
-        hold = f"שאלה טובה {name}, מישהו מהצוות יחזור אליך עם תשובה מדויקת בהקדם 🙏".replace("  ", " ")
+        mname = model.name if model else "האופנוע"
+        check = f"שאלה טובה {name} — אני בודק את זה עם הצוות וחוזר אליך. בינתיים, רוצה לקבוע נסיעת מבחן?"
 
         if self.kn.wants_handoff(incoming):
-            return Suggestion(f"בטח {name}, מישהו מהצוות יחזור אליך בהקדם.", "handoff", "הלקוח ביקש נציג")
+            return Suggestion(f"בטח {name}, מישהו מהצוות יחזור אליך בהקדם.", "handoff", "הלקוח ביקש נציג", pause=True)
         if any(w in t for w in self.BOT_QUESTION):
             return Suggestion(
                 f"אני העוזר הדיגיטלי של {self.kn.business.get('name', 'הסוכנות')} 🙂 אם תרצה לדבר עם נציג — רק תגיד.",
@@ -208,7 +220,7 @@ class Agent:
         asked = [f for f, words in self.FIELD_WORDS.items() if any(w in t for w in words)]
         if asked:
             if not model:
-                return Suggestion(hold, "handoff", "שאלה עובדתית אבל הדגם לא זוהה")
+                return Suggestion(check, "handoff", "שאלה עובדתית אבל הדגם לא זוהה")
             parts, unknown = [], []
             for f in asked:
                 v = getattr(model, f)
@@ -216,13 +228,18 @@ class Agent:
                     unknown.append(f)
                 else:
                     parts.append(_field_sentence(f, model, v))
+            if unknown and not parts:
+                return Suggestion(check, "handoff", f"אין מידע מאושר על: {', '.join(unknown)} ({model.name})")
+            msg = " ".join(parts)
             if unknown:
-                return Suggestion(hold, "handoff", f"אין מידע מאושר על: {', '.join(unknown)} ({model.name})")
-            return Suggestion((" ".join(parts) + " רוצה לבוא לנסיעת מבחן?").strip(), "answer")
+                msg += " את השאר אני בודק עם הצוות וחוזר אליך."
+                return Suggestion((msg + " רוצה לבוא לנסיעת מבחן?").strip(), "handoff",
+                                  f"אין מידע מאושר על: {', '.join(unknown)} ({model.name})")
+            return Suggestion((msg + " רוצה לבוא לנסיעת מבחן?").strip(), "answer")
 
-        if any(w in t for w in self.MEETING) or re.search(r"\b(כן|בשמחה|אשמח|יאללה)\b", t):
+        if any(w in t for w in self.MEETING) or re.search(r"\b(כן|בשמחה|אשמח|יאללה|בטח)\b", t):
             if not slots:
-                return Suggestion(hold, "handoff", "הלקוח רוצה פגישה אבל אין מועדים פנויים")
+                return Suggestion(check, "handoff", "הלקוח רוצה פגישה אבל אין מועדים פנויים")
             opts = ", ".join(s.label() for s in slots)
             return Suggestion(f"מעולה {name}! יש לי {opts}. מה מתאים לך?", "meeting", slots=slots)
 
@@ -231,9 +248,25 @@ class Agent:
             if all(f.answer for f in faqs):
                 return Suggestion(" ".join(f.answer for f in faqs), "answer")
             missing = ", ".join(f.topic for f in faqs if not f.answer)
-            return Suggestion(hold, "handoff", f"אין תשובה מאושרת לנושא: {missing}")
+            return Suggestion(check, "handoff", f"אין תשובה מאושרת לנושא: {missing}")
 
-        return Suggestion(hold, "handoff", "לא זוהתה שאלה מוכרת — כדאי שנציג יענה")
+        if any(w in t for w in self.TELL_ME):
+            if model and model.highlights:
+                return Suggestion(f"בשמחה! ה-{model.name}: " + "; ".join(model.highlights[:3]) +
+                                  ". הכי טוב להרגיש אותו בנסיעת מבחן — מתי נוח לך?", "answer")
+            return Suggestion(f"בשמחה {name}! הכי טוב להכיר את ה-{mname} בנסיעת מבחן — רוצה שאציע כמה מועדים?", "answer")
+
+        if any(w in t for w in self.GREETING):
+            return Suggestion(f"היי {name}! 🙂 שמח שחזרת אליי. רוצה לשמוע עוד על ה-{mname}, או שנקבע נסיעת מבחן?", "answer")
+
+        if any(w in t for w in self.THANKS):
+            return Suggestion(f"בכיף {name}! אם יש עוד שאלה או שבא לך לקבוע נסיעת מבחן — אני כאן.", "answer")
+
+        # didn't understand — ask, don't escalate
+        return Suggestion(
+            f"לא בטוח שהבנתי {name} 🙂 אפשר לשאול אותי על המחיר, הצבעים או המפרט של ה-{mname}, או שנקבע נסיעת מבחן.",
+            "answer",
+        )
 
 
 ORDINALS = {"הראשון": 0, "הראשונה": 0, "השני": 1, "השנייה": 1, "השניה": 1, "השלישי": 2, "השלישית": 2}
@@ -275,6 +308,8 @@ def _field_sentence(f: str, model: Model, v) -> str:
         "availability": f"לגבי זמינות: {v}.",
         "promotions": f"כרגע יש: {v}.",
         "license": f"ה-{model.name} מתאים לרישיון {v}.",
+        "warranty": f"האחריות: {v}.",
+        "service": f"טיפולים: {v}.",
     }[f]
 
 

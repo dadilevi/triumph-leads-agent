@@ -135,8 +135,13 @@ class TestRuleAgent(unittest.TestCase):
     def test_faq_without_approved_answer_hands_off(self):
         self.assertEqual(self.reply("יש אפשרות למימון?").intent, "handoff")
 
-    def test_gibberish_hands_off(self):
-        self.assertEqual(self.reply("מה דעתך על מזג האוויר").intent, "handoff")
+    def test_not_understood_asks_back_instead_of_escalating(self):
+        s = self.reply("מה דעתך על מזג האוויר")
+        self.assertEqual(s.intent, "answer")
+        self.assertNotIn("₪", s.message)
+
+    def test_greeting(self):
+        self.assertEqual(self.reply("בוקר טוב").intent, "answer")
 
 
 class TestAIAgent(unittest.TestCase):

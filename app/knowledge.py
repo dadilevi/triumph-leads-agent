@@ -26,6 +26,8 @@ class Model:
     availability: str | None = None
     promotions: str | None = None
     includes: str | None = None
+    warranty: str | None = None
+    service: str | None = None
     highlights: list[str] = field(default_factory=list)
 
     def as_prompt_text(self) -> str:
@@ -44,6 +46,8 @@ class Model:
                 f"  זמינות: {v(self.availability)}",
                 f"  מבצעים: {v(self.promotions)}",
                 f"  כולל: {v(self.includes)}",
+                f"  אחריות: {v(self.warranty)}",
+                f"  טיפולים: {v(self.service)}",
                 f"  נקודות חוזק: {v(self.highlights)}",
             ]
         )
@@ -65,6 +69,7 @@ class Knowledge:
     faq: list[FAQ]
     handoff_keywords: list[str]
     is_dummy: bool = False
+    source: str = ""
 
     @classmethod
     def load(cls, models_file: Path, business_file: Path) -> "Knowledge":
@@ -80,6 +85,7 @@ class Knowledge:
             faq=faq,
             handoff_keywords=b.get("handoff_keywords", []),
             is_dummy=bool(m.get("_dummy") or b.get("_dummy")),
+            source=m.get("_source", ""),
         )
 
     # ---- lookups -------------------------------------------------------

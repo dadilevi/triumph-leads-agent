@@ -6,7 +6,7 @@
 <ul class="alerts">
   {% for a in items %}
     <li class="card alert kind-{{ a.kind }}{{ ' unseen' if not a.seen }}">
-      <span class="kind">{{ {'meeting':'📅 פגישה','handoff':'🙋 לנציג','error':'⚠︎ תקלה','human_took_over':'👤 נציג השתלט','new_lead':'✨ ליד חדש'}.get(a.kind, a.kind) }}</span>
+      <span class="kind">{{ {'meeting':'📅 פגישה','handoff':'🙋 לנציג','error':'⚠︎ תקלה','human_took_over':'👤 נציג השתלט','new_lead':'✨ ליד חדש','question':'❓ שאלה לצוות'}.get(a.kind, a.kind) }}</span>
       <span class="text">{{ a.text }}</span>
       {% if a.lead_id %}<a href="{{ url_for('lead_page', lead_id=a.lead_id) }}">{{ a.first_name }} {{ a.last_name }}</a>{% endif %}
       <time class="muted small">{{ a.created_at[5:16].replace('T',' ') }}</time>

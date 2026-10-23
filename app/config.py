@@ -24,7 +24,7 @@ def _path(env: str, default: str) -> Path:
 class Config:
     anthropic_api_key: str = ""
     anthropic_model: str = "claude-sonnet-5-5"
-    models_file: Path = ROOT / "knowledge/models.dummy.yaml"
+    models_file: Path = ROOT / "knowledge/models.yaml"
     business_file: Path = ROOT / "knowledge/business.dummy.yaml"
     calendar_provider: str = "mock"
     google_calendar_id: str = "primary"
@@ -56,7 +56,7 @@ class Config:
         return cls(
             anthropic_api_key=os.environ.get("ANTHROPIC_API_KEY", "").strip(),
             anthropic_model=os.environ.get("ANTHROPIC_MODEL") or "claude-sonnet-5-5",
-            models_file=_path("MODELS_FILE", "knowledge/models.dummy.yaml"),
+            models_file=_path("MODELS_FILE", "knowledge/models.yaml"),
             business_file=_path("BUSINESS_FILE", "knowledge/business.dummy.yaml"),
             calendar_provider=(os.environ.get("CALENDAR_PROVIDER") or "mock").lower(),
             google_calendar_id=os.environ.get("GOOGLE_CALENDAR_ID") or "primary",
