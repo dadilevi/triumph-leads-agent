@@ -143,10 +143,10 @@ class Agent:
             try:
                 return self._ai_reply(first_name, model, history, slots)
             except Exception as e:
-                s = self._rule_reply(first_name, model, incoming, slots)
+                s = self._rule_reply(first_name, model, incoming, slots, history)
                 s.handoff_reason = (s.handoff_reason + f" | AI לא זמין: {e}").strip(" |")
                 return s
-        return self._rule_reply(first_name, model, incoming, slots)
+        return self._rule_reply(first_name, model, incoming, slots, history)
 
     suggest_reply = reply  # backwards-compatible name
 
@@ -194,11 +194,20 @@ class Agent:
         "service": ["טיפול", "טיפולים"],
     }
 
-    GREETING = ["היי", "הי ", "שלום", "בוקר טוב", "ערב טוב", "צהריים טובים", "אהלן", "מה נשמע", "מה קורה", "hello", "hi"]
+    GREETING = ["היי", "הי ", "שלום", "בוקר טוב", "ערב טוב", "צהריים טובים", "אהלן", "מה נשמע", "מה קורה", "מה המצב", "מה העניינים", "מה שלומך", "hello", "hi"]
     THANKS = ["תודה", "מעולה", "סבבה", "אחלה", "תותח"]
     TELL_ME = ["ספר לי", "תספר", "פרטים", "מה יש לו", "מה מיוחד", "מעוניין", "מעוניינת", "מתעניין", "מתעניינת", "מידע"]
 
-    def _rule_reply(self, first_name, model: Model | None, incoming: str, slots: list[Slot]) -> Suggestion:
+    def _rule_reply(self, first_name, model: Model | None, incoming: str, slots: list[Slot],
+                    history: list[tuple[str, str]] | None = None) -> Suggestion:
+        history = history or []
+        recent_out = [txt for d, txt in history if d == "out"][-4:]
+        we_spoke = bool(recent_out)
+
+        def pick(*options: str) -> str:
+            """First option we haven't said recently — avoids sending the same line twice."""
+            return next((o for o in options if o not in recent_out), options[-1])
+
         t = incoming.lower().strip()
         name = first_name or ""
         mname = model.name if model else "האופנוע"
@@ -257,17 +266,31 @@ class Agent:
                                   ". הכי טוב להרגיש אותו בנסיעת מבחן — מתי נוח לך?", "answer")
             return Suggestion(f"בשמחה {name}! הכי טוב להכיר את ה-{mname} בנסיעת מבחן — רוצה שאציע כמה מועדים?", "answer")
 
+        biz = self.kn.business.get("name", "הסוכנות")
+        about = f"ה-{mname}" if model else "הדגמים שלנו"
         if any(w in t for w in self.GREETING):
-            return Suggestion(f"היי {name}! 🙂 שמח שחזרת אליי. רוצה לשמוע עוד על ה-{mname}, או שנקבע נסיעת מבחן?", "answer")
+            if not we_spoke:  # the customer opened the conversation
+                return Suggestion(pick(
+                    f"היי {name}! 🙂 כאן העוזר הדיגיטלי של {biz}. איך אפשר לעזור — לספר על {about}, מחיר, או לקבוע נסיעת מבחן?",
+                ).replace("  ", " "), "answer")
+            return Suggestion(pick(
+                f"גם לך {name} 🙂 מה מעניין אותך — המחיר, הצבעים, המפרט של {about}, או לקבוע נסיעת מבחן?",
+                f"היי שוב {name}! אני כאן — אפשר לשאול אותי כל דבר על {about}, או שנקבע נסיעת מבחן?",
+                f"שלום שלום 🙂 תכתוב לי מה תרצה לדעת, ואם בא לך — יש לי מועדים פנויים לנסיעת מבחן השבוע.",
+            ), "answer")
 
         if any(w in t for w in self.THANKS):
-            return Suggestion(f"בכיף {name}! אם יש עוד שאלה או שבא לך לקבוע נסיעת מבחן — אני כאן.", "answer")
+            return Suggestion(pick(
+                f"בכיף {name}! אם יש עוד שאלה או שבא לך לקבוע נסיעת מבחן — אני כאן.",
+                f"בשמחה 🙂 רק תכתוב אם תרצה לקבוע נסיעת מבחן.",
+            ), "answer")
 
         # didn't understand — ask, don't escalate
-        return Suggestion(
-            f"לא בטוח שהבנתי {name} 🙂 אפשר לשאול אותי על המחיר, הצבעים או המפרט של ה-{mname}, או שנקבע נסיעת מבחן.",
-            "answer",
-        )
+        return Suggestion(pick(
+            f"לא בטוח שהבנתי {name} 🙂 אפשר לשאול אותי על המחיר, הצבעים או המפרט של {about}, או שנקבע נסיעת מבחן.",
+            f"סליחה, לא הבנתי עד הסוף 🙈 תוכל לנסח אחרת? או שנקבע נסיעת מבחן ונדבר על הכל בסוכנות.",
+            f"אני עוזר דיגיטלי ולפעמים מפספס 🙂 אם תרצה — אעביר את השאלה ל{self.kn.business.get('salesperson_name', 'נציג')}, רק תכתוב \"נציג\".",
+        ), "answer")
 
 
 ORDINALS = {"הראשון": 0, "הראשונה": 0, "השני": 1, "השנייה": 1, "השניה": 1, "השלישי": 2, "השלישית": 2}

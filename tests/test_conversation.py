@@ -128,6 +128,19 @@ class TestAutoMode(Base):
         self.say("אשמח לנסיעת מבחן")
         self.assertEqual(len(self.ch.sent), n + 1)
 
+    def test_customer_opens_with_greetings_no_repeats(self):
+        self.say("שלום")
+        first = self.last_out()
+        self.assertIn("העוזר הדיגיטלי", first)  # introduces itself, doesn't say "glad you're back"
+        self.assertNotIn("שחזרת", first)
+        self.say("בוקר טוב")
+        self.assertNotEqual(self.last_out(), first)
+        outs = [m["text"] for m in self.db.messages(self.lead_id) if m["direction"] == "out"]
+        for _ in range(3):
+            self.say("אממ")
+            outs.append(self.last_out())
+        self.assertNotEqual(outs[-1], outs[-2])
+
     def test_financing_answered_and_salesperson_notified(self):
         lead = self.say("יש מימון?")
         self.assertIn("פתרון שילך לקראתך", self.last_out())
