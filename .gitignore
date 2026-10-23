@@ -1,0 +1,20 @@
+# Personal data of leads — never commit (see SPEC.md)
+data/*
+!data/.gitkeep
+
+# Secrets
+.env
+credentials.json
+token.json
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/

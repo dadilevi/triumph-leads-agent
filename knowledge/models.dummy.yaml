@@ -1,0 +1,88 @@
+# ⚠️ DUMMY DATA — placeholder until the dealer sends the real model list.
+# Every value here is fake. Do NOT show this to real customers.
+#
+# The agent answers ONLY from this file. A field that is missing or null means
+# "unknown" → the agent hands off to a human instead of guessing.
+#
+# Fields per model:
+#   id            short stable id
+#   name          display name
+#   aliases       other ways the model may appear in the leads Excel / customer messages
+#   category      free text (naked / adventure / modern classic ...)
+#   license       required Israeli license class (A / A1 / A2) — or null
+#   price         string as the dealer wants it quoted — or null
+#   colors        list — or empty
+#   availability  free text — or null
+#   promotions    free text — or null
+#   includes      free text (what the price includes) — or null
+#   highlights    list of short selling points
+_dummy: true
+
+models:
+  - id: trident-660
+    name: Trident 660
+    aliases: [trident, טריידנט, טרידנט]
+    category: נייקד בינוני
+    license: A2
+    price: "₪00,000 (דמה)"
+    colors: [אדום (דמה), שחור (דמה), לבן (דמה)]
+    availability: "במלאי (דמה)"
+    promotions: null
+    includes: "רישוי ראשון (דמה)"
+    highlights:
+      - "מנוע תלת-צילינדרי 660 סמ\"ק (דמה)"
+      - "מתאים לרישיון A2 (דמה)"
+      - "קליל ונוח לעיר (דמה)"
+
+  - id: street-triple-765
+    name: Street Triple 765
+    aliases: [street triple, סטריט טריפל, 765]
+    category: נייקד ספורטיבי
+    license: A
+    price: null          # intentionally unknown → agent must hand off on price questions
+    colors: [כסוף (דמה), כחול (דמה)]
+    availability: null
+    promotions: null
+    includes: null
+    highlights:
+      - "ספורטיבי וחד (דמה)"
+
+  - id: tiger-900
+    name: Tiger 900
+    aliases: [tiger 900, טייגר 900, טייגר, tiger]
+    category: אדוונצ'ר
+    license: A
+    price: "₪00,000 (דמה)"
+    colors: [ירוק (דמה), אפור (דמה)]
+    availability: "אספקה תוך 4–6 שבועות (דמה)"
+    promotions: "מבצע אביזרים (דמה)"
+    includes: "ארגזי צד (דמה)"
+    highlights:
+      - "מתאים לשטח ולכביש (דמה)"
+      - "מושב בגובה מתכוונן (דמה)"
+
+  - id: speed-400
+    name: Speed 400
+    aliases: [speed 400, ספיד 400, ספיד]
+    category: מודרן קלאסיק קטן
+    license: A1
+    price: "₪00,000 (דמה)"
+    colors: [אדום (דמה), שחור (דמה)]
+    availability: "במלאי (דמה)"
+    promotions: null
+    includes: null
+    highlights:
+      - "כניסה נוחה לעולם הטריומף (דמה)"
+
+  - id: bonneville-t120
+    name: Bonneville T120
+    aliases: [bonneville, בונוויל, t120]
+    category: מודרן קלאסיק
+    license: A
+    price: null
+    colors: []
+    availability: null
+    promotions: null
+    includes: null
+    highlights:
+      - "קלאסיקה בריטית (דמה)"

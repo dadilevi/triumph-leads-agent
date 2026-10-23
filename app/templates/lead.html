@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}{{ lead.first_name }} {{ lead.last_name }}{% endblock %}
+{% block content %}
+<a class="back" href="{{ url_for('index') }}">→ כל הלידים</a>
+
+<div class="lead-grid">
+  <aside class="card info">
+    <h1>{{ lead.first_name }} {{ lead.last_name }}</h1>
+    <dl>
+      <dt>טלפון</dt><dd class="ltr">{% if lead.phone %}{{ display_phone(lead.phone) }}{% else %}<span class="bad">לא תקין: {{ lead.phone_raw or 'חסר' }}</span>{% endif %}</dd>
+      <dt>מייל</dt><dd class="ltr">{{ lead.email or '—' }}</dd>
+      <dt>דגם</dt><dd>{{ model.name if model else (lead.model_raw or '—') }}{% if not model %} <span class="tag">לא בקובץ הידע</span>{% endif %}</dd>
+    </dl>
+    <form method="post" action="{{ url_for('change_status', lead_id=lead.id) }}" class="status-form">
+      <label>סטטוס
+        <select name="status" onchange="this.form.submit()">
+          {% for k, v in STATUSES.items() %}<option value="{{ k }}" {{ 'selected' if lead.status == k }}>{{ v }}</option>{% endfor %}
+        </select>
+      </label>
+    </form>
+    {% if meetings %}
+      <h3>פגישות</h3>
+      <ul class="meetings">{% for m in meetings %}<li>{{ m.start[8:10] }}/{{ m.start[5:7] }} {{ m.start[11:16] }}</li>{% endfor %}</ul>
+    {% endif %}
+    <form method="post" action="{{ url_for('notes', lead_id=lead.id) }}" class="notes">
+      <label>הערות פנימיות<textarea name="notes" rows="3">{{ lead.notes }}</textarea></label>
+      <button class="ghost small">שמירה</button>
+    </form>
+  </aside>
+
+  <section class="convo">
+    <div class="card thread">
+      {% if not msgs %}<p class="muted center">עוד לא נשלחו הודעות.</p>{% endif %}
+      {% for m in msgs %}
+        <div class="bubble {{ m.direction }}"><div>{{ m.text }}</div><time>{{ m.created_at[5:16].replace('T',' ') }}</time></div>
+      {% endfor %}
+    </div>
+
+    {% if sug %}
+    <div class="card draft intent-{{ sug.intent }}">
+      <div class="draft-head">
+        <h2>{{ 'הודעת פתיחה' if not msgs else 'תשובה מוצעת' }}</h2>
+        <span class="pill">{{ INTENT_LABELS.get(sug.intent, sug.intent) }}</span>
+        <span class="muted small">{{ 'נוסח ע״י Claude' if sug.used_ai else 'תבנית / חוקים' }}</span>
+      </div>
+      {% if sug.handoff_reason %}<p class="reason">⚠︎ {{ sug.handoff_reason }}</p>{% endif %}
+      <form method="post" action="{{ url_for('mark_sent', lead_id=lead.id) }}" id="send-form">
+        <textarea name="text" id="draft-text" rows="5">{{ sug.message }}</textarea>
+        <div class="actions">
+          {% if wa_base %}
+            <button type="button" class="primary" onclick="openWa()">פתח בוואטסאפ ← סמן כנשלח</button>
+          {% else %}
+            <span class="bad">אין מספר תקין — אי אפשר לפתוח וואטסאפ</span>
+          {% endif %}
+          <button type="submit" class="ghost">סמן כנשלח בלי לפתוח</button>
+        </div>
+      </form>
+    </div>
+    {% endif %}
+
+    {% if offered and lead.status != 'meeting' %}
+    <div class="card slots">
+      <h2>מועדים שהוצעו</h2>
+      <p class="muted small">כשהלקוח בוחר מועד — לחץ עליו כדי ליצור אירוע ב{{ calendar_name }}:</p>
+      {% for s in offered %}
+        <form method="post" action="{{ url_for('book', lead_id=lead.id) }}">
+          <input type="hidden" name="start" value="{{ s.start }}"><input type="hidden" name="end" value="{{ s.end }}">
+          <button class="slot">📅 {{ s.label }}</button>
+        </form>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="card incoming">
+      <form method="post" action="{{ url_for('incoming', lead_id=lead.id) }}">
+        <label>הלקוח ענה? הדבק כאן את ההודעה שלו
+          <textarea name="text" rows="3" placeholder="לדוגמה: היי, כמה הוא עולה? אפשר לבוא לנסות בשבוע הבא?"></textarea>
+        </label>
+        <div class="actions">
+          <button class="primary">קבל הצעת תשובה</button>
+        </div>
+      </form>
+      <div class="actions secondary">
+        <form method="post" action="{{ url_for('offer_slots', lead_id=lead.id) }}"><button class="ghost small">הצע מועדים מהיומן</button></form>
+        <form method="post" action="{{ url_for('regenerate', lead_id=lead.id) }}"><button class="ghost small">נסח מחדש</button></form>
+      </div>
+    </div>
+  </section>
+</div>
+
+{% if wa_base %}
+<script>
+  function openWa() {
+    const text = document.getElementById('draft-text').value;
+    window.open('{{ wa_base }}?text=' + encodeURIComponent(text), '_blank', 'noopener');
+    document.getElementById('send-form').submit();
+  }
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="toolbar">
+  <form class="upload" action="{{ url_for('import_excel') }}" method="post" enctype="multipart/form-data">
+    <label class="file">
+      <input type="file" name="file" accept=".xlsx,.xlsm" required onchange="this.form.submit()">
+      <span>העלאת קובץ לידים (Excel)</span>
+    </label>
+  </form>
+  <nav class="filters">
+    <a href="{{ url_for('index') }}" class="{{ 'on' if not current }}">הכל <b>{{ counts.values()|sum }}</b></a>
+    {% for key, label in STATUSES.items() %}
+      <a href="{{ url_for('index', status=key) }}" class="st-{{ key }} {{ 'on' if current == key }}">{{ label }} <b>{{ counts[key] }}</b></a>
+    {% endfor %}
+  </nav>
+</section>
+
+{% if not leads %}
+  <div class="empty">
+    <p>אין עדיין לידים{% if current %} בסטטוס הזה{% endif %}.</p>
+    {% if not current %}<p class="hint">לבדיקה: <code>samples/leads_dummy.xlsx</code> — קובץ דמה עם לידים מזויפים.</p>{% endif %}
+  </div>
+{% else %}
+<table class="leads">
+  <thead><tr><th>שם</th><th>טלפון</th><th>דגם</th><th>סטטוס</th><th>עודכן</th></tr></thead>
+  <tbody>
+  {% for l in leads %}
+    <tr onclick="location.href='{{ url_for('lead_page', lead_id=l.id) }}'">
+      <td><a href="{{ url_for('lead_page', lead_id=l.id) }}">{{ l.first_name }} {{ l.last_name }}</a></td>
+      <td class="ltr">{% if l.phone %}{{ display_phone(l.phone) }}{% else %}<span class="bad">{{ l.phone_raw or 'חסר' }}</span>{% endif %}</td>
+      <td>{{ models.get(l.model_id) or l.model_raw }}{% if not l.model_id and l.model_raw %} <span class="tag" title="לא נמצא בקובץ הידע">?</span>{% endif %}</td>
+      <td><span class="pill st-{{ l.status }}">{{ STATUSES[l.status] }}</span></td>
+      <td class="muted">{{ l.updated_at[5:16].replace('T', ' ') }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+{% endblock %}

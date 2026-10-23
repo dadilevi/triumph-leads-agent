@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}לידים{% endblock %} · Triumph Leads</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="{{ url_for('index') }}">Triumph Leads <span>טייס משנה</span></a>
+    <div class="badges">
+      {% if is_dummy %}<span class="badge warn" title="קבצי הידע הם נתוני דמה">נתוני דמה</span>{% endif %}
+      <span class="badge {{ 'ok' if ai_enabled else 'muted' }}">{{ 'Claude פעיל' if ai_enabled else 'מצב ללא AI' }}</span>
+      <span class="badge muted">{{ calendar_name }}</span>
+    </div>
+  </header>
+  <main>
+    {% with msgs = get_flashed_messages(with_categories=true) %}
+      {% if msgs %}<div class="flashes">{% for cat, m in msgs %}<div class="flash {{ cat }}">{{ m }}</div>{% endfor %}</div>{% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

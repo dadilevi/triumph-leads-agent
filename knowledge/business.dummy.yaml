@@ -1,0 +1,50 @@
+# ⚠️ DUMMY DATA — replace with the dealer's real details.
+_dummy: true
+
+business:
+  name: "Triumph (סוכנות דמה)"
+  address: "רחוב הדוגמה 1, עיר הדמה"
+  salesperson_name: "דני"          # who signs the messages
+  timezone: Asia/Jerusalem
+
+meetings:
+  duration_minutes: 45
+  # Weekday keys: sun mon tue wed thu fri sat. Missing day = closed.
+  hours:
+    sun: ["09:00", "18:00"]
+    mon: ["09:00", "18:00"]
+    tue: ["09:00", "18:00"]
+    wed: ["09:00", "18:00"]
+    thu: ["09:00", "18:00"]
+    fri: ["09:00", "13:00"]
+  min_notice_hours: 3        # don't propose slots sooner than this
+  search_days: 7             # how far ahead to look
+  slots_to_offer: 3
+  event_title: "נסיעת מבחן / ביקור — {full_name} ({model})"
+
+# Opening message used when no AI key is set (and as a style example for the AI).
+# Placeholders: {first_name} {model} {salesperson} {business}
+opening_template: |
+  היי {first_name}, כאן {salesperson} מ{business} 🙂
+  ראיתי שהתעניינת ב-{model} — רוצה שאספר לך עליו קצת, או שנקבע נסיעת מבחן?
+
+# Approved answers to common questions. The agent may use ONLY these + models file.
+faq:
+  - topic: רישיון
+    keywords: [רישיון, רשיון, A1, A2, דרגה]
+    answer: "תשובת דמה: נשמח לבדוק איזה דגם מתאים לדרגת הרישיון שלך."
+  - topic: מימון
+    keywords: [מימון, תשלומים, הלוואה, ליסינג]
+    answer: null   # unknown → hand off
+  - topic: טרייד-אין
+    keywords: [טרייד, טרייד-אין, להחליף, האופנוע הישן, trade]
+    answer: null
+  - topic: נסיעת מבחן
+    keywords: [נסיעת מבחן, לנסות, טסט רייד, test ride]
+    answer: "תשובת דמה: בטח! צריך רק רישיון בתוקף מתאים לדגם. נקבע מועד?"
+  - topic: אחריות
+    keywords: [אחריות, warranty]
+    answer: null
+
+# When the customer says any of these, hand off to a human immediately.
+handoff_keywords: [נציג, בן אדם, אדם אמיתי, תתקשר, להתקשר, תלונה, עורך דין]
