@@ -63,6 +63,7 @@ class Suggestion:
     slots: list[Slot] = field(default_factory=list)  # slots offered in this message
     chosen: Slot | None = None  # intent == "book"
     pause: bool = False  # hard handoff: a human must take the whole conversation
+    notify: str = ""  # FYI alert for the salesperson (e.g. "asked about financing") — conversation continues
 
 
 LLMCall = Callable[[str, list[dict], dict], dict]  # (system, messages, tool) -> tool input dict

@@ -133,7 +133,12 @@ class TestRuleAgent(unittest.TestCase):
         self.assertEqual(self.reply("אפשר שנציג יתקשר אליי?").intent, "handoff")
 
     def test_faq_without_approved_answer_hands_off(self):
-        self.assertEqual(self.reply("יש אפשרות למימון?").intent, "handoff")
+        self.assertEqual(self.reply("אפשר טרייד-אין על האופנוע הישן?").intent, "handoff")
+
+    def test_financing_answer_approved(self):
+        s = self.reply("יש אפשרות למימון?")
+        self.assertEqual(s.intent, "answer")
+        self.assertIn("פתרון שילך לקראתך", s.message)
 
     def test_not_understood_asks_back_instead_of_escalating(self):
         s = self.reply("מה דעתך על מזג האוויר")

@@ -128,6 +128,12 @@ class TestAutoMode(Base):
         self.say("אשמח לנסיעת מבחן")
         self.assertEqual(len(self.ch.sent), n + 1)
 
+    def test_financing_answered_and_salesperson_notified(self):
+        lead = self.say("יש מימון?")
+        self.assertIn("פתרון שילך לקראתך", self.last_out())
+        self.assertFalse(lead["agent_paused"])
+        self.assertTrue(any(a["kind"] == "info" and "מימון" in a["text"] for a in self.db.alerts()))
+
     def test_greeting_and_small_talk_get_replies(self):
         for text in ["בוקר טוב", "ספר לי עליו", "תודה!", "אממ"]:
             lead = self.say(text)

@@ -37,7 +37,9 @@ faq:
     answer: "תשובת דמה: נשמח לבדוק איזה דגם מתאים לדרגת הרישיון שלך."
   - topic: מימון
     keywords: [מימון, תשלומים, הלוואה, ליסינג]
-    answer: null   # unknown → hand off
+    # approved by Dadi 2026-10-23. Don't add rates/terms here unless the dealer gives them.
+    answer: "בטח, יש אפשרויות מימון 🙂 ואנחנו תמיד ננסה למצוא פתרון שילך לקראתך. את הפרטים מתאימים אישית — הכי נוח לסגור את זה כשתגיע לסוכנות. רוצה לקבוע נסיעת מבחן?"
+    notify: true   # answer, and also tell the salesperson the lead asked about financing
   - topic: טרייד-אין
     keywords: [טרייד, טרייד-אין, להחליף, האופנוע הישן, trade]
     answer: null

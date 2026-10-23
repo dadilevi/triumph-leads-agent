@@ -93,4 +93,5 @@ mode creates the event) · `handoff` · `not_interested`.
 - [ ] Cloud API tested only against a fake HTTP layer; verify with the dealer's Meta app
 - [ ] Claude path tested only with a fake LLM; try with a real API key and tune the prompt on real conversations
 - [ ] Hosting for go-live (always-on machine + tunnel, or a small VPS): not decided
+- [x] Financing FAQ answer approved by Dadi (in business.dummy.yaml — carry it over to the real business.yaml). `notify: true` FAQ topics raise an "info" alert
 - [ ] David had a version built before and lost the file. Asking him (via Dadi) what it did and what's left

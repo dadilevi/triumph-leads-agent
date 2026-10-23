@@ -58,6 +58,7 @@ class FAQ:
     topic: str
     keywords: list[str]
     answer: str | None
+    notify: bool = False  # also alert the salesperson when this topic comes up
 
 
 @dataclass
@@ -76,7 +77,8 @@ class Knowledge:
         m = yaml.safe_load(Path(models_file).read_text(encoding="utf-8")) or {}
         b = yaml.safe_load(Path(business_file).read_text(encoding="utf-8")) or {}
         models = [Model(**{k: v for k, v in x.items() if k in Model.__dataclass_fields__}) for x in m.get("models", [])]
-        faq = [FAQ(topic=f["topic"], keywords=f.get("keywords", []), answer=f.get("answer")) for f in b.get("faq", [])]
+        faq = [FAQ(topic=f["topic"], keywords=f.get("keywords", []), answer=f.get("answer"),
+                   notify=bool(f.get("notify"))) for f in b.get("faq", [])]
         return cls(
             models=models,
             business=b.get("business", {}),

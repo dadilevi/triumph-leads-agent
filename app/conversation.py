@@ -223,6 +223,10 @@ class ConversationEngine:
             history = [(m["direction"], m["text"]) for m in self.db.messages(lead_id) if m["status"] == "sent"]
             slots = self._slots_for_turn(lead)
             s = self.agent.reply(lead["first_name"], self.model_for(lead), history, slots)
+            incoming = next((t for d, t in reversed(history) if d == "in"), "")
+            topics = [f.topic for f in self.kn.match_faq(incoming) if f.notify]
+            if topics and not s.notify:
+                s.notify = "הלקוח שאל על " + ", ".join(topics)
 
             if s.intent == "book" and auto:
                 s = self._book(lead, s.chosen)
@@ -232,6 +236,9 @@ class ConversationEngine:
 
             if s.slots:
                 self.db.set_offered_slots(lead_id, json.dumps(slots_to_list(s.slots), ensure_ascii=False))
+
+            if s.notify:  # FYI for the salesperson; the conversation continues
+                self._alert(lead, "info", s.notify)
 
             if s.intent == "handoff" and s.pause:  # the whole conversation goes to a human
                 self.db.set_status(lead_id, "handoff")
