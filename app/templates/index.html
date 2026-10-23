@@ -7,6 +7,11 @@
       <span>העלאת קובץ לידים (Excel)</span>
     </label>
   </form>
+  {% if counts['new'] %}
+  <form method="post" action="{{ url_for('start_new') }}">
+    <button class="ghost">{{ 'שלח פתיחה לכל החדשים' if auto_mode else 'הכן טיוטות פתיחה לחדשים' }} ({{ counts['new'] }})</button>
+  </form>
+  {% endif %}
   <nav class="filters">
     <a href="{{ url_for('index') }}" class="{{ 'on' if not current }}">הכל <b>{{ counts.values()|sum }}</b></a>
     {% for key, label in STATUSES.items() %}
@@ -26,7 +31,7 @@
   <tbody>
   {% for l in leads %}
     <tr onclick="location.href='{{ url_for('lead_page', lead_id=l.id) }}'">
-      <td><a href="{{ url_for('lead_page', lead_id=l.id) }}">{{ l.first_name }} {{ l.last_name }}</a></td>
+      <td><a href="{{ url_for('lead_page', lead_id=l.id) }}">{{ l.first_name }} {{ l.last_name }}</a>{% if l.agent_paused %} <span class="tag" title="השיחה אצל נציג">👤</span>{% endif %}{% if l.pending_suggestion and l.status != 'new' %} <span class="tag" title="טיוטה מחכה לאישור">✎</span>{% endif %}</td>
       <td class="ltr">{% if l.phone %}{{ display_phone(l.phone) }}{% else %}<span class="bad">{{ l.phone_raw or 'חסר' }}</span>{% endif %}</td>
       <td>{{ models.get(l.model_id) or l.model_raw }}{% if not l.model_id and l.model_raw %} <span class="tag" title="לא נמצא בקובץ הידע">?</span>{% endif %}</td>
       <td><span class="pill st-{{ l.status }}">{{ STATUSES[l.status] }}</span></td>

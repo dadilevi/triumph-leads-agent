@@ -8,14 +8,23 @@
 </head>
 <body>
   <header class="top">
-    <a class="brand" href="{{ url_for('index') }}">Triumph Leads <span>טייס משנה</span></a>
+    <div class="top-start">
+      <a class="brand" href="{{ url_for('index') }}">Triumph Leads</a>
+      <nav class="mainnav">
+        <a href="{{ url_for('index') }}" class="{{ 'on' if request.endpoint in ('index', 'lead_page') }}">לידים</a>
+        <a href="{{ url_for('simulator') }}" class="{{ 'on' if request.endpoint == 'simulator' }}">סימולטור</a>
+        <a href="{{ url_for('alerts') }}" class="{{ 'on' if request.endpoint == 'alerts' }}">התראות{% if unseen_alerts %} <b class="count">{{ unseen_alerts }}</b>{% endif %}</a>
+      </nav>
+    </div>
     <div class="badges">
       {% if is_dummy %}<span class="badge warn" title="קבצי הידע הם נתוני דמה">נתוני דמה</span>{% endif %}
-      <span class="badge {{ 'ok' if ai_enabled else 'muted' }}">{{ 'Claude פעיל' if ai_enabled else 'מצב ללא AI' }}</span>
+      <span class="badge {{ 'ok' if auto_mode else 'muted' }}" title="מצב הסוכן">{{ 'אוטומטי' if auto_mode else 'באישור נציג' }}</span>
+      <span class="badge muted" title="ערוץ">{{ channel_label }}</span>
+      <span class="badge {{ 'ok' if ai_enabled else 'muted' }}">{{ 'Claude פעיל' if ai_enabled else 'ללא AI' }}</span>
       <span class="badge muted">{{ calendar_name }}</span>
     </div>
   </header>
-  <main>
+  <main class="{% block mainclass %}{% endblock %}">
     {% with msgs = get_flashed_messages(with_categories=true) %}
       {% if msgs %}<div class="flashes">{% for cat, m in msgs %}<div class="flash {{ cat }}">{{ m }}</div>{% endfor %}</div>{% endif %}
     {% endwith %}

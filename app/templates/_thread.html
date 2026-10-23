@@ -1,0 +1,10 @@
+{# messages thread. `me` = which side is "us": 'out' on the lead page, 'in' in the simulator (you play the customer) #}
+<div class="card thread" id="thread">
+  {% if not msgs %}<p class="muted center">עוד אין הודעות.</p>{% endif %}
+  {% for m in msgs %}
+    <div class="bubble {{ m.direction }} author-{{ m.author }}{% if m.status == 'failed' %} failed{% endif %}">
+      <div>{{ m.text }}</div>
+      <time>{{ AUTHOR_LABELS.get(m.author, m.author) }} · {{ m.created_at[5:16].replace('T',' ') }}{% if m.status == 'failed' %} · <b>לא נשלח</b>{% endif %}</time>
+    </div>
+  {% endfor %}
+</div>

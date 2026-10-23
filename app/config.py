@@ -33,6 +33,19 @@ class Config:
     db_path: Path = ROOT / "data/leads.db"
     mock_calendar_file: Path = ROOT / "data/mock_calendar.json"
     port: int = 5050
+    # conversation
+    channel: str = "simulator"          # wame / simulator / cloud
+    agent_mode: str = "supervised"      # supervised (human approves each reply) / auto
+    debounce_seconds: float = 0.0       # wait for the customer to finish typing several messages
+    notify_phone: str = ""              # salesperson's number for alerts (best effort)
+    # WhatsApp Business Cloud API
+    whatsapp_phone_number_id: str = ""
+    whatsapp_token: str = ""
+    whatsapp_app_secret: str = ""       # verifies webhook signatures
+    whatsapp_verify_token: str = ""     # the string you type in Meta's webhook setup
+    whatsapp_opening_template: str = "" # approved template name for the first message
+    whatsapp_template_lang: str = "he"
+    whatsapp_api_version: str = "v21.0"
 
     @property
     def ai_enabled(self) -> bool:
@@ -52,4 +65,15 @@ class Config:
             db_path=_path("DB_PATH", "data/leads.db"),
             mock_calendar_file=_path("MOCK_CALENDAR_FILE", "data/mock_calendar.json"),
             port=int(os.environ.get("PORT") or 5050),
+            channel=(os.environ.get("CHANNEL") or "simulator").lower(),
+            agent_mode=(os.environ.get("AGENT_MODE") or "supervised").lower(),
+            debounce_seconds=float(os.environ.get("DEBOUNCE_SECONDS") or 0),
+            notify_phone=os.environ.get("NOTIFY_PHONE", "").strip(),
+            whatsapp_phone_number_id=os.environ.get("WHATSAPP_PHONE_NUMBER_ID", "").strip(),
+            whatsapp_token=os.environ.get("WHATSAPP_TOKEN", "").strip(),
+            whatsapp_app_secret=os.environ.get("WHATSAPP_APP_SECRET", "").strip(),
+            whatsapp_verify_token=os.environ.get("WHATSAPP_VERIFY_TOKEN", "").strip(),
+            whatsapp_opening_template=os.environ.get("WHATSAPP_OPENING_TEMPLATE", "").strip(),
+            whatsapp_template_lang=os.environ.get("WHATSAPP_TEMPLATE_LANG") or "he",
+            whatsapp_api_version=os.environ.get("WHATSAPP_API_VERSION") or "v21.0",
         )

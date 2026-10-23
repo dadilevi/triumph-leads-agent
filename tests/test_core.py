@@ -172,12 +172,14 @@ class TestWebFlow(unittest.TestCase):
 
         self.tmp = tempfile.TemporaryDirectory()
         d = Path(self.tmp.name)
-        cfg = Config(db_path=d / "t.db", mock_calendar_file=d / "cal.json")
+        cfg = Config(db_path=d / "t.db", mock_calendar_file=d / "cal.json", channel="wame")
         self.app = create_app(cfg, llm=None, calendar=MockCalendar(d / "cal.json", TZ))
+        self.app.config["TESTING"] = True
         self.c = self.app.test_client()
         self.db = self.app.extensions["tla"]["db"]
 
     def tearDown(self):
+        self.db.conn.close()
         self.tmp.cleanup()
 
     def test_full_flow(self):

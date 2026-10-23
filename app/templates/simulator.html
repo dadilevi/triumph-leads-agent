@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}סימולטור{% endblock %}
+{% block mainclass %}wide{% endblock %}
+{% block content %}
+<div class="sim-grid">
+  <aside class="card sim-list">
+    <h2>שיחות</h2>
+    <form method="post" action="{{ url_for('simulator_new') }}" class="sim-new">
+      <input name="name" placeholder="שם לקוח בדיקה" required>
+      <select name="model">
+        {% for m in models %}<option value="{{ m.name }}">{{ m.name }}</option>{% endfor %}
+        <option value="">בלי דגם</option>
+      </select>
+      <button class="primary small">+ לקוח חדש</button>
+    </form>
+    <ul>
+      {% for l in leads %}
+        <li class="{{ 'on' if lead and lead.id == l.id }}">
+          <a href="{{ url_for('simulator', lead=l.id) }}">
+            <span>{{ l.first_name }} {{ l.last_name }}</span>
+            <span class="pill st-{{ l.status }}">{{ STATUSES[l.status] }}</span>
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  </aside>
+
+  {% if lead %}
+  <section class="sim-chat">
+    {% set next_url = url_for('simulator', lead=lead.id) %}
+    <div class="sim-head card">
+      <div>
+        <b>{{ lead.first_name }} {{ lead.last_name }}</b>
+        <span class="muted small">· {{ lead.model_raw or 'בלי דגם' }} · {{ STATUSES[lead.status] }}</span>
+      </div>
+      <div class="actions tight">
+        {% if not msgs %}
+          <form method="post" action="{{ url_for('simulator_start', lead_id=lead.id) }}"><button class="ghost small">הסוכן פותח שיחה</button></form>
+        {% endif %}
+        <a class="ghost small btn" href="{{ url_for('lead_page', lead_id=lead.id) }}">כרטיס ליד</a>
+      </div>
+    </div>
+    <p class="muted small sim-hint">אתה משחק את הלקוח. ההודעות שלך מימין, הסוכן משמאל.</p>
+    {% include "_paused.html" %}
+    {% include "_thread.html" %}
+    {% if not auto_mode %}{% include "_draft.html" %}{% endif %}
+    {% include "_slots.html" %}
+    <form method="post" action="{{ url_for('simulator_customer', lead_id=lead.id) }}" class="card sim-compose">
+      <textarea name="text" rows="2" placeholder="כתוב כמו לקוח… למשל: כמה עולה? / אפשר לבוא לנסות ביום ראשון?" autofocus
+                onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();this.form.submit();}"></textarea>
+      <button class="primary">שלח כלקוח</button>
+    </form>
+  </section>
+  {% else %}
+    <div class="empty">צור לקוח בדיקה כדי להתחיל.</div>
+  {% endif %}
+</div>
+{% if lead %}
+<script>
+  // keep the thread scrolled to the bottom, and refresh when the agent answers (debounce / background)
+  const th = document.getElementById('thread'); if (th) th.scrollTop = th.scrollHeight;
+  let known = null;
+  setInterval(async () => {
+    try {
+      const r = await fetch('{{ url_for("simulator_poll", lead_id=lead.id) }}'); const j = await r.json();
+      const sig = JSON.stringify(j);
+      if (known && sig !== known && !document.activeElement.matches('textarea:not(:placeholder-shown)')) location.reload();
+      known = sig;
+    } catch (e) {}
+  }, 2000);
+</script>
+{% endif %}
+{% endblock %}

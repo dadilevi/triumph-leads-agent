@@ -1,0 +1,35 @@
+{% if sug %}
+<div class="card draft intent-{{ sug.intent }}">
+  <div class="draft-head">
+    <h2>{{ 'הודעת פתיחה' if not msgs else 'תשובה מוצעת' }}</h2>
+    <span class="pill">{{ INTENT_LABELS.get(sug.intent, sug.intent) }}</span>
+    <span class="muted small">{{ 'נוסח ע״י Claude' if sug.used_ai else 'תבנית / חוקים' }}</span>
+  </div>
+  {% if sug.handoff_reason %}<p class="reason">⚠︎ {{ sug.handoff_reason }}</p>{% endif %}
+  <form method="post" action="{{ url_for('send', lead_id=lead.id) }}" id="send-form">
+    <input type="hidden" name="next" value="{{ next_url }}">
+    <textarea name="text" id="draft-text" rows="4">{{ sug.message }}</textarea>
+    <div class="actions">
+      {% if channel_name == 'wame' %}
+        {% if wa_base %}
+          <button type="button" class="primary" onclick="openWa()">פתח בוואטסאפ ← סמן כנשלח</button>
+        {% else %}
+          <span class="bad">אין מספר תקין — אי אפשר לפתוח וואטסאפ</span>
+        {% endif %}
+        <button type="submit" class="ghost">סמן כנשלח בלי לפתוח</button>
+      {% else %}
+        <button type="submit" class="primary">אשר ושלח</button>
+      {% endif %}
+    </div>
+  </form>
+</div>
+{% if channel_name == 'wame' and wa_base %}
+<script>
+  function openWa() {
+    const text = document.getElementById('draft-text').value;
+    window.open('{{ wa_base }}?text=' + encodeURIComponent(text), '_blank', 'noopener');
+    document.getElementById('send-form').submit();
+  }
+</script>
+{% endif %}
+{% endif %}

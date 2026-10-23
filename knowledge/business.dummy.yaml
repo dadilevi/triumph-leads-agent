@@ -4,7 +4,8 @@ _dummy: true
 business:
   name: "Triumph (סוכנות דמה)"
   address: "רחוב הדוגמה 1, עיר הדמה"
-  salesperson_name: "דני"          # who signs the messages
+  salesperson_name: "דני"          # the human who takes over / receives meetings
+  agent_name: "העוזר הדיגיטלי"     # how the agent presents itself (it never claims to be human)
   timezone: Asia/Jerusalem
 
 meetings:
@@ -22,11 +23,12 @@ meetings:
   slots_to_offer: 3
   event_title: "נסיעת מבחן / ביקור — {full_name} ({model})"
 
-# Opening message used when no AI key is set (and as a style example for the AI).
+# Opening message (no-AI mode, simulator, and style example for the AI).
+# On WhatsApp Cloud API the opening is the Meta-approved template instead — keep both texts identical.
 # Placeholders: {first_name} {model} {salesperson} {business}
 opening_template: |
-  היי {first_name}, כאן {salesperson} מ{business} 🙂
-  ראיתי שהתעניינת ב-{model} — רוצה שאספר לך עליו קצת, או שנקבע נסיעת מבחן?
+  היי {first_name}! כאן העוזר הדיגיטלי של {business} 🙂
+  ראיתי שהתעניינת ב-{model} — רוצה שאספר לך עליו קצת, או שנקבע נסיעת מבחן? ואם תעדיף לדבר עם {salesperson}, רק תגיד.
 
 # Approved answers to common questions. The agent may use ONLY these + models file.
 faq:

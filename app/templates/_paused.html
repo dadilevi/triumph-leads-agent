@@ -1,0 +1,6 @@
+{% if lead.agent_paused %}
+  <div class="card paused">
+    <div><b>השיחה אצל נציג</b> — הסוכן לא עונה בה.{% if lead.paused_reason %} <span class="muted">({{ lead.paused_reason }})</span>{% endif %}</div>
+    <form method="post" action="{{ url_for('resume', lead_id=lead.id) }}"><input type="hidden" name="next" value="{{ next_url }}"><button class="ghost small">החזר לסוכן</button></form>
+  </div>
+{% endif %}

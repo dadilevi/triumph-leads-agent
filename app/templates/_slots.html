@@ -1,0 +1,13 @@
+{% if offered and lead.status != 'meeting' %}
+<div class="card slots">
+  <h2>מועדים שהוצעו</h2>
+  <p class="muted small">{% if auto_mode %}הסוכן יקבע לבד כשהלקוח יבחר. אפשר גם ללחוץ ידנית:{% else %}כשהלקוח בוחר מועד — לחץ עליו כדי ליצור אירוע ב{{ calendar_name }}:{% endif %}</p>
+  {% for s in offered %}
+    <form method="post" action="{{ url_for('book', lead_id=lead.id) }}">
+      <input type="hidden" name="next" value="{{ next_url }}">
+      <input type="hidden" name="start" value="{{ s.start }}"><input type="hidden" name="end" value="{{ s.end }}">
+      <button class="slot">📅 {{ s.label }}</button>
+    </form>
+  {% endfor %}
+</div>
+{% endif %}

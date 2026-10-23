@@ -70,7 +70,8 @@ textarea { resize: vertical; line-height: 1.55; }
 .notes { margin-top: 14px; display: grid; gap: 6px; }
 
 .thread { display: flex; flex-direction: column; gap: 8px; max-height: 420px; overflow-y: auto; }
-.bubble { max-width: 78%; padding: 8px 12px; border-radius: 12px; white-space: pre-wrap; border: 1px solid var(--line); }
+.bubble { max-width: 78%; padding: 8px 12px; border-radius: 12px; border: 1px solid var(--line); }
+.bubble > div { white-space: pre-wrap; }
 .bubble.out { align-self: flex-start; background: var(--out); border-start-start-radius: 3px; }
 .bubble.in { align-self: flex-end; background: var(--in); border-start-end-radius: 3px; }
 .bubble time { display: block; font-size: 11px; color: var(--muted); margin-top: 2px; }
@@ -94,3 +95,45 @@ button.slot { width: 100%; text-align: right; background: var(--bg); border: 1px
 button.slot:hover { background: color-mix(in srgb, var(--st-meeting) 12%, transparent); }
 .meetings { margin: 0; padding-inline-start: 18px; }
 code { background: var(--line); padding: 1px 5px; border-radius: 4px; }
+
+/* ---- nav / simulator / alerts ---- */
+.top-start { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
+.mainnav { display: flex; gap: 4px; }
+.mainnav a { text-decoration: none; color: #bbb; padding: 4px 10px; border-radius: 6px; font-size: 14px; }
+.mainnav a.on, .mainnav a:hover { color: #fff; background: #2a2a2a; }
+.mainnav .count { background: var(--accent); color: #fff; border-radius: 999px; padding: 0 6px; font-size: 11px; }
+main.wide { max-width: 1280px; }
+.page-title { font-size: 20px; margin: 0 0 14px; }
+.btn { text-decoration: none; display: inline-block; }
+a.ghost { border: 1px solid var(--line); border-radius: 8px; padding: 5px 10px; font-size: 13px; color: var(--ink); }
+.actions.tight { margin-top: 0; }
+input { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; }
+
+.sim-grid { display: grid; grid-template-columns: 260px 1fr; gap: 16px; align-items: start; }
+@media (max-width: 780px) { .sim-grid { grid-template-columns: 1fr; } }
+.sim-list h2 { margin-bottom: 10px; }
+.sim-new input, .sim-new select { width: 100%; }
+.sim-new { display: grid; gap: 6px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+.sim-list ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; max-height: 60vh; overflow-y: auto; }
+.sim-list li a { display: flex; justify-content: space-between; gap: 6px; align-items: center; text-decoration: none;
+  padding: 7px 8px; border-radius: 8px; font-size: 14px; }
+.sim-list li.on a, .sim-list li a:hover { background: var(--bg); }
+.sim-chat { display: grid; gap: 12px; }
+.sim-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 14px; }
+.sim-hint { margin: -4px 4px; }
+.sim-compose { display: flex; gap: 8px; align-items: flex-end; padding: 10px; }
+.sim-compose textarea { flex: 1; }
+/* in the simulator you are the customer: flip sides */
+.sim-chat .bubble.in { align-self: flex-start; background: var(--out); border-radius: 12px; border-start-start-radius: 3px; }
+.sim-chat .bubble.out { align-self: flex-end; background: var(--in); border-radius: 12px; border-start-end-radius: 3px; }
+.bubble.author-human { border-color: var(--st-handoff); }
+.bubble.failed { opacity: .6; border-style: dashed; border-color: var(--bad); }
+
+.paused { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;
+  border-color: var(--st-handoff); background: color-mix(in srgb, var(--st-handoff) 8%, var(--card)); padding: 10px 14px; }
+
+.alerts { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.alert { display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; padding: 10px 14px; }
+.alert .kind { font-weight: 600; min-width: 110px; }
+.alert .text { flex: 1; }
+.alert.unseen { border-inline-start: 4px solid var(--accent); }
